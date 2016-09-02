@@ -1,5 +1,7 @@
 package io.github.cjkent.kjb
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
 import org.joda.beans.Bean
@@ -12,9 +14,11 @@ import org.testng.annotations.Test
 data class Foo(val bar: Int, val baz: String) : ImmutableData
 data class ContainsFoo(val foo: Foo) : ImmutableData
 data class ContainsListOfFoo(val foo: List<Foo>) : ImmutableData
+data class ContainsImmutableListOfFoo(val foo: ImmutableList<Foo>) : ImmutableData
 data class ContainsJodaBean(val jodaBean: JodaBeanContainsFoo) : ImmutableData
 data class Bar(val baz: Double) : ImmutableData
 data class ContainsMapOfBeans(val map: Map<Foo, Bar>) : ImmutableData
+data class ContainsImmutableMapOfBeans(val map: ImmutableMap<Foo, Bar>) : ImmutableData
 
 @Test
 class MetaBeanTest {
@@ -45,6 +49,11 @@ class SerializationTest {
         serializeDeserialize(bean)
     }
 
+    fun containsImmutableListOfFoo() {
+        val bean = ContainsImmutableListOfFoo(ImmutableList.of(Foo(42, "abc"), Foo(27, "xyz")))
+        serializeDeserialize(bean)
+    }
+
     fun containsJodaBean() {
         val bean = ContainsJodaBean(JodaBeanContainsFoo.builder().foo(Foo(42, "abc")).build())
         serializeDeserialize(bean)
@@ -59,15 +68,18 @@ class SerializationTest {
         serializeDeserialize(bean)
     }
 
+    fun containsImmutableMapOfBeans() {
+        val foo1 = Foo(42, "abc")
+        val foo2 = Foo(27, "xyz")
+        val bar1 = Bar(123.4)
+        val bar2 = Bar(432.1)
+        val bean = ContainsImmutableMapOfBeans(ImmutableMap.of(foo1, bar1, foo2, bar2))
+        serializeDeserialize(bean)
+    }
+
     fun jodaBeanContainsFoo() {
         val bean = JodaBeanContainsFoo.builder().foo(Foo(42, "abc")).build()
-        val serDeserializers = SerDeserializers(KotlinDeserializerProvider)
-        val settings = JodaBeanSer.COMPACT.withDeserializers(serDeserializers)
-        val writer = JodaBeanJsonWriter(settings)
-        val json = writer.write(bean)
-        val reader = JodaBeanJsonReader(settings)
-        val deserialized = reader.read(json)
-        assertThat(deserialized).isEqualTo(bean)
+        serializeDeserialize(bean)
     }
 }
 
