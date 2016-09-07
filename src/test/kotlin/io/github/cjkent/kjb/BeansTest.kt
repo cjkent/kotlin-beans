@@ -2,6 +2,8 @@ package io.github.cjkent.kjb
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableSortedSet
 import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
 import org.joda.beans.Bean
@@ -11,10 +13,14 @@ import org.joda.beans.ser.json.JodaBeanJsonReader
 import org.joda.beans.ser.json.JodaBeanJsonWriter
 import org.testng.annotations.Test
 
-data class Foo(val bar: Int, val baz: String) : ImmutableData
+data class Foo(val bar: Int, val baz: String) : ImmutableData, Comparable<Foo> {
+    override fun compareTo(other: Foo): Int = bar.compareTo(other.bar)
+}
 data class ContainsFoo(val foo: Foo) : ImmutableData
 data class ContainsListOfFoo(val foo: List<Foo>) : ImmutableData
 data class ContainsImmutableListOfFoo(val foo: ImmutableList<Foo>) : ImmutableData
+data class ContainsImmutableSetOfFoo(val foo: ImmutableSet<Foo>) : ImmutableData
+data class ContainsImmutableSortedSetOfFoo(val foo: ImmutableSortedSet<Foo>) : ImmutableData
 data class ContainsJodaBean(val jodaBean: JodaBeanContainsFoo) : ImmutableData
 data class Bar(val baz: Double) : ImmutableData
 data class ContainsMapOfBeans(val map: Map<Foo, Bar>) : ImmutableData
@@ -54,6 +60,16 @@ class SerializationTest {
         serializeDeserialize(bean)
     }
 
+    fun containsImmutableSetOfFoo() {
+        val bean = ContainsImmutableSetOfFoo(ImmutableSet.of(Foo(42, "abc"), Foo(27, "xyz")))
+        serializeDeserialize(bean)
+    }
+
+    fun containsImmutableSortedSetOfFoo() {
+        val bean = ContainsImmutableSortedSetOfFoo(ImmutableSortedSet.of(Foo(42, "abc"), Foo(27, "xyz")))
+        serializeDeserialize(bean)
+    }
+
     fun containsJodaBean() {
         val bean = ContainsJodaBean(JodaBeanContainsFoo.builder().foo(Foo(42, "abc")).build())
         serializeDeserialize(bean)
@@ -81,14 +97,14 @@ class SerializationTest {
         val bean = JodaBeanContainsFoo.builder().foo(Foo(42, "abc")).build()
         serializeDeserialize(bean)
     }
-}
 
-private fun <T : Bean> serializeDeserialize(bean: T) {
-    val serDeserializers = SerDeserializers(KotlinDeserializerProvider)
-    val settings = JodaBeanSer.COMPACT.withDeserializers(serDeserializers)
-    val writer = JodaBeanJsonWriter(settings)
-    val json = writer.write(bean)
-    val reader = JodaBeanJsonReader(settings)
-    val deserialized = reader.read(json)
-    assertThat(deserialized).isEqualTo(bean)
+    private fun <T : Bean> serializeDeserialize(bean: T) {
+        val serDeserializers = SerDeserializers(KotlinDeserializerProvider)
+        val settings = JodaBeanSer.COMPACT.withDeserializers(serDeserializers)
+        val writer = JodaBeanJsonWriter(settings)
+        val json = writer.write(bean)
+        val reader = JodaBeanJsonReader(settings)
+        val deserialized = reader.read(json)
+        assertThat(deserialized).isEqualTo(bean)
+    }
 }
