@@ -1,16 +1,26 @@
 package io.github.cjkent.kjb
 
-import org.joda.beans.*
+import org.joda.beans.Bean
+import org.joda.beans.BeanBuilder
+import org.joda.beans.ImmutableBean
+import org.joda.beans.MetaBean
+import org.joda.beans.MetaProperty
+import org.joda.beans.Property
+import org.joda.beans.PropertyMap
+import org.joda.beans.PropertyStyle
 import org.joda.beans.impl.BasicProperty
 import org.joda.beans.impl.BasicPropertyMap
-import org.joda.beans.ser.DeserializerProvider
 import org.joda.beans.ser.SerDeserializer
+import org.joda.beans.ser.SerDeserializerProvider
 import org.joda.convert.StringConvert
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-import java.util.*
-import kotlin.reflect.*
+import java.util.HashMap
+import java.util.NoSuchElementException
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.javaType
+import kotlin.reflect.memberProperties
 
 //===================================================================================================================
 
@@ -178,7 +188,7 @@ object KotlinSerDeserializer : SerDeserializer {
 
 //===================================================================================================================
 
-object KotlinDeserializerProvider : DeserializerProvider {
+object KotlinDeserializerProvider : SerDeserializerProvider {
 
     override fun findDeserializer(type: Class<*>): SerDeserializer? =
             // TODO Introspect the class to check if it's an immutable Kotlin data class
