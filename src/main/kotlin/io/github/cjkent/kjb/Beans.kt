@@ -6,10 +6,8 @@ import org.joda.beans.ImmutableBean
 import org.joda.beans.MetaBean
 import org.joda.beans.MetaProperty
 import org.joda.beans.Property
-import org.joda.beans.PropertyMap
 import org.joda.beans.PropertyStyle
 import org.joda.beans.impl.BasicProperty
-import org.joda.beans.impl.BasicPropertyMap
 import org.joda.beans.ser.SerDeserializer
 import org.joda.beans.ser.SerDeserializerProvider
 import org.joda.convert.StringConvert
@@ -19,8 +17,9 @@ import java.util.HashMap
 import java.util.NoSuchElementException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaType
-import kotlin.reflect.memberProperties
 
 //===================================================================================================================
 
@@ -38,17 +37,17 @@ interface ImmutableData : ImmutableBean {
 
 data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
 
-    val propertyMap : Map<String, KProperty<*>>
-    val metaPropertyMap : Map<String, MetaProperty<*>>
+    private val propertyMap : Map<String, KProperty1<*, *>>
+    private val metaPropertyMap : Map<String, MetaProperty<*>>
 
     init {
         propertyMap = beanClass.memberProperties.associateBy { it.name }
         metaPropertyMap = beanClass.memberProperties.associateBy({ it.name }, { KotlinMetaProperty(it, this) })
     }
 
-    override fun metaPropertyCount(): Int = propertyMap.size
+    override fun isBuildable(): Boolean = true
 
-    override fun createPropertyMap(bean: Bean): PropertyMap = BasicPropertyMap.of(bean)
+    override fun metaPropertyCount(): Int = propertyMap.size
 
     override fun beanType(): Class<out Bean> = beanClass.java
 
@@ -127,29 +126,14 @@ data class KotlinMetaProperty<T>(val property: KProperty<T>, val metaBean: Kotli
 
 //===================================================================================================================
 
+@Suppress("UNCHECKED_CAST")
 data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : BeanBuilder<T> {
 
     private val propertyValues: MutableMap<String, Any> = HashMap()
 
-    override fun get(metaProperty: MetaProperty<*>): Any? = get(metaProperty.name())
+    override fun <P> get(metaProperty: MetaProperty<P>): P? = get(metaProperty.name()) as P?
 
     override fun get(propertyName: String): Any? = propertyValues[propertyName]
-
-    override fun setAll(propertyValueMap: Map<String, Any>): BeanBuilder<T> {
-        for ((propertyName, propertyValue) in propertyValueMap) set(propertyName, propertyValue)
-        return this
-    }
-
-    override fun setString(propertyName: String, value: String): BeanBuilder<T> {
-        val propertyType = metaBean.metaProperty<Any>(propertyName).propertyType()
-        val convertedValue = StringConvert.INSTANCE.convertFromString(propertyType, value)
-        return set(propertyName, convertedValue)
-    }
-
-    override fun setString(metaProperty: MetaProperty<*>, value: String): BeanBuilder<T> {
-        val convertedValue = StringConvert.INSTANCE.convertFromString(metaProperty.propertyType(), value)
-        return set(metaProperty, convertedValue)
-    }
 
     override fun set(metaProperty: MetaProperty<*>, value: Any): BeanBuilder<T> = set(metaProperty.name(), value)
 
