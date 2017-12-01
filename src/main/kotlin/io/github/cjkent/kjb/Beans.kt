@@ -175,6 +175,5 @@ object KotlinSerDeserializer : SerDeserializer {
 object KotlinDeserializerProvider : SerDeserializerProvider {
 
     override fun findDeserializer(type: Class<*>): SerDeserializer? =
-            // TODO Introspect the class to check if it's an immutable Kotlin data class
-            if (type.`package`.name == "io.github.cjkent.kjb") KotlinSerDeserializer else null
+            if (ImmutableData::class.java.isAssignableFrom(type)) KotlinSerDeserializer else null
 }
