@@ -21,20 +21,25 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaType
 
-//===================================================================================================================
-
+/**
+ * Provides implementations of all [ImmutableBean] methods for Kotlin classes.
+ *
+ * A Kotlin class can become a Joda bean by implementing this interface. No function implementations are
+ * needed as they are all provided by this interface.
+ */
 interface ImmutableData : ImmutableBean {
 
     override fun <R : Any> property(propertyName: String): Property<R> =
-            metaBean().metaProperty<R>(propertyName).createProperty(this)
+        metaBean().metaProperty<R>(propertyName).createProperty(this)
 
     override fun propertyNames(): Set<String> = metaBean().metaPropertyMap().keys
 
     override fun metaBean(): MetaBean = KotlinMetaBean(this.javaClass.kotlin)
 }
 
-//===================================================================================================================
-
+/**
+ * [MetaBean] implementation for Kotlin classes that uses reflection.
+ */
 data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
 
     private val propertyMap : Map<String, KProperty1<*, *>>
@@ -68,8 +73,9 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
     override fun builder(): BeanBuilder<out Bean> = KotlinBeanBuilder(this)
 }
 
-//===================================================================================================================
-
+/**
+ * [MetaProperty] implementation for Kotlin properties that uses reflection.
+ */
 @Suppress("UNCHECKED_CAST")
 data class KotlinMetaProperty<T>(val property: KProperty<T>, val metaBean: KotlinMetaBean) : MetaProperty<T> {
 
@@ -90,8 +96,8 @@ data class KotlinMetaProperty<T>(val property: KProperty<T>, val metaBean: Kotli
     override fun createProperty(bean: Bean): Property<T> = BasicProperty.of(bean, this)
 
     override fun <A : Annotation> annotation(annotation: Class<A>): A =
-            annotations().find { it.javaClass == annotation } as A? ?:
-                    throw NoSuchElementException("No annotation found of type ${annotation.name}")
+        annotations().find { it.javaClass == annotation } as A? ?:
+        throw NoSuchElementException("No annotation found of type ${annotation.name}")
 
     override fun style(): PropertyStyle = PropertyStyle.IMMUTABLE
 
@@ -124,8 +130,9 @@ data class KotlinMetaProperty<T>(val property: KProperty<T>, val metaBean: Kotli
     }
 }
 
-//===================================================================================================================
-
+/**
+ * [BeanBuilder] implementation for Kotlin classes.
+ */
 @Suppress("UNCHECKED_CAST")
 data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : BeanBuilder<T> {
 
@@ -150,18 +157,19 @@ data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : 
     }
 }
 
-//===================================================================================================================
-
+/**
+ * [SerDeserializer] implementation for Kotlin classes.
+ */
 object KotlinSerDeserializer : SerDeserializer {
 
     @Suppress("UNCHECKED_CAST")
     override fun findMetaBean(beanType: Class<*>): MetaBean = KotlinMetaBean(beanType.kotlin as KClass<out ImmutableBean>)
 
     override fun createBuilder(beanType: Class<*>, metaBean: MetaBean): BeanBuilder<*> =
-            KotlinBeanBuilder<ImmutableBean>(metaBean as KotlinMetaBean)
+        KotlinBeanBuilder<ImmutableBean>(metaBean as KotlinMetaBean)
 
     override fun findMetaProperty(beanType: Class<*>, metaBean: MetaBean, propertyName: String): MetaProperty<*> =
-            metaBean.metaProperty<Any>(propertyName)
+        metaBean.metaProperty<Any>(propertyName)
 
     override fun setValue(builder: BeanBuilder<*>, metaProp: MetaProperty<*>, value: Any) {
         builder.set(metaProp, value)
@@ -170,10 +178,11 @@ object KotlinSerDeserializer : SerDeserializer {
     override fun build(beanType: Class<*>, builder: BeanBuilder<*>): Any = builder.build()
 }
 
-//===================================================================================================================
-
+/**
+ * [SerDeserializerProvider] that adds support for Kotlin to the Joda Beans serialization mechanism.
+ */
 object KotlinDeserializerProvider : SerDeserializerProvider {
 
     override fun findDeserializer(type: Class<*>): SerDeserializer? =
-            if (ImmutableData::class.java.isAssignableFrom(type)) KotlinSerDeserializer else null
+        if (ImmutableData::class.java.isAssignableFrom(type)) KotlinSerDeserializer else null
 }
