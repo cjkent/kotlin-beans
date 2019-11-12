@@ -8,9 +8,6 @@ import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
 import org.joda.beans.Bean
 import org.joda.beans.ser.JodaBeanSer
-import org.joda.beans.ser.SerDeserializers
-import org.joda.beans.ser.json.JodaBeanJsonReader
-import org.joda.beans.ser.json.JodaBeanJsonWriter
 import org.testng.annotations.Test
 
 data class Foo(val bar: Int, val baz: String) : ImmutableData, Comparable<Foo> {
@@ -99,12 +96,8 @@ class SerializationTest {
     }
 
     private fun <T : Bean> serializeDeserialize(bean: T) {
-        val serDeserializers = SerDeserializers(KotlinDeserializerProvider)
-        val settings = JodaBeanSer.COMPACT.withDeserializers(serDeserializers)
-        val writer = JodaBeanJsonWriter(settings)
-        val json = writer.write(bean)
-        val reader = JodaBeanJsonReader(settings)
-        val deserialized = reader.read(json)
+        val json = JodaBeanSer.COMPACT.jsonWriter().write(bean)
+        val deserialized = JodaBeanSer.COMPACT.jsonReader().read(json)
         assertThat(deserialized).isEqualTo(bean)
     }
 }

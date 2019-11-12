@@ -8,6 +8,7 @@ import org.joda.beans.MetaProperty
 import org.joda.beans.Property
 import org.joda.beans.PropertyStyle
 import org.joda.beans.impl.BasicProperty
+import org.joda.beans.ser.DeserializerProvider
 import org.joda.beans.ser.SerDeserializer
 import org.joda.beans.ser.SerDeserializerProvider
 import org.joda.convert.StringConvert
@@ -27,6 +28,7 @@ import kotlin.reflect.jvm.javaType
  * A Kotlin class can become a Joda bean by implementing this interface. No function implementations are
  * needed as they are all provided by this interface.
  */
+@DeserializerProvider(KotlinDeserializerProvider::class)
 interface ImmutableData : ImmutableBean {
 
     override fun <R : Any> property(propertyName: String): Property<R> =
@@ -34,6 +36,7 @@ interface ImmutableData : ImmutableBean {
 
     override fun propertyNames(): Set<String> = metaBean().metaPropertyMap().keys
 
+    // TODO this should create the bean via a companion object function to allow caching by bean type
     override fun metaBean(): MetaBean = KotlinMetaBean(this.javaClass.kotlin)
 }
 
@@ -181,7 +184,7 @@ object KotlinSerDeserializer : SerDeserializer {
 /**
  * [SerDeserializerProvider] that adds support for Kotlin to the Joda Beans serialization mechanism.
  */
-object KotlinDeserializerProvider : SerDeserializerProvider {
+class KotlinDeserializerProvider : SerDeserializerProvider {
 
     override fun findDeserializer(type: Class<*>): SerDeserializer? =
         if (ImmutableData::class.java.isAssignableFrom(type)) KotlinSerDeserializer else null
