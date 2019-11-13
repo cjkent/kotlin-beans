@@ -22,6 +22,7 @@
         <assertj.version>3.8.0</assertj.version>
         <testng.version>6.11</testng.version>
         <joda-beans.version>2.7.2-SNAPSHOT</joda-beans.version>
+        <joda-convert.version>2.2.1</joda-convert.version>
     </properties>
 
     <dependencies>
@@ -39,6 +40,11 @@
             <groupId>org.joda</groupId>
             <artifactId>joda-beans</artifactId>
             <version>${joda-beans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.joda</groupId>
+            <artifactId>joda-convert</artifactId>
+            <version>${joda-convert.version}</version>
         </dependency>
 
         <!-- test dependencies -->

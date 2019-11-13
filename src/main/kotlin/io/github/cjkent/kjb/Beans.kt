@@ -16,6 +16,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.HashMap
 import java.util.NoSuchElementException
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -36,8 +37,7 @@ interface ImmutableData : ImmutableBean {
 
     override fun propertyNames(): Set<String> = metaBean().metaPropertyMap().keys
 
-    // TODO this should create the bean via a companion object function to allow caching by bean type
-    override fun metaBean(): MetaBean = KotlinMetaBean(this.javaClass.kotlin)
+    override fun metaBean(): MetaBean = KotlinMetaBean.forType(this.javaClass.kotlin)
 }
 
 /**
@@ -74,6 +74,19 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
     override fun beanName(): String = beanClass.java.name
 
     override fun builder(): BeanBuilder<out Bean> = KotlinBeanBuilder(this)
+
+    companion object {
+
+        private val metaBeanCache: MutableMap<KClass<*>, KotlinMetaBean> = ConcurrentHashMap()
+
+        fun <T : ImmutableBean> forType(type: KClass<T>): KotlinMetaBean {
+            val cachedBean = metaBeanCache[type]
+            if (cachedBean != null) return cachedBean
+            val metaBean = KotlinMetaBean(type)
+            metaBeanCache[type] = metaBean
+            return metaBean
+        }
+    }
 }
 
 /**
@@ -154,8 +167,9 @@ data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : 
 
     @Suppress("UNCHECKED_CAST")
     override fun build(): T {
+        // TODO can this be made to work with parameters that have default values?
         val primaryConstructor = metaBean.beanClass.constructors.toList()[0]
-        val constructorArgs = primaryConstructor.parameters.associateBy({ it }, { propertyValues[it.name] })
+        val constructorArgs = primaryConstructor.parameters.associateWith { propertyValues[it.name] }
         return primaryConstructor.callBy(constructorArgs) as T
     }
 }
@@ -166,7 +180,8 @@ data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : 
 object KotlinSerDeserializer : SerDeserializer {
 
     @Suppress("UNCHECKED_CAST")
-    override fun findMetaBean(beanType: Class<*>): MetaBean = KotlinMetaBean(beanType.kotlin as KClass<out ImmutableBean>)
+    override fun findMetaBean(beanType: Class<*>): MetaBean =
+        KotlinMetaBean.forType(beanType.kotlin as KClass<out ImmutableBean>)
 
     override fun createBuilder(beanType: Class<*>, metaBean: MetaBean): BeanBuilder<*> =
         KotlinBeanBuilder<ImmutableBean>(metaBean as KotlinMetaBean)
