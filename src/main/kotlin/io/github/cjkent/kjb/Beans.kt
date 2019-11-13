@@ -167,9 +167,13 @@ data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : 
 
     @Suppress("UNCHECKED_CAST")
     override fun build(): T {
-        // TODO can this be made to work with parameters that have default values?
         val primaryConstructor = metaBean.beanClass.constructors.toList()[0]
-        val constructorArgs = primaryConstructor.parameters.associateWith { propertyValues[it.name] }
+        // Filter out the constructor parameters if there is no corresponding argument.
+        // Construction will fail if any of these parameters are non-optional (don't have default values)
+        // TODO check the exception thrown is understandable
+        val constructorArgs = primaryConstructor.parameters
+            .filter { propertyValues.contains(it.name) }
+            .associateWith { propertyValues[it.name] }
         return primaryConstructor.callBy(constructorArgs) as T
     }
 }
