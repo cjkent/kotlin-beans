@@ -47,10 +47,17 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
 
     private val propertyMap : Map<String, KProperty1<*, *>>
     private val metaPropertyMap : Map<String, MetaProperty<*>>
+    private val aliasMap : Map<String?, String>
 
     init {
         propertyMap = beanClass.memberProperties.associateBy { it.name }
         metaPropertyMap = beanClass.memberProperties.associateBy({ it.name }, { KotlinMetaProperty(it, this) })
+        aliasMap = propertyMap
+            .mapValues { (_, prop) -> alias(prop) }
+            .filterValues { it != null }
+            .map { (name, alias) -> alias to name }
+            .toMap()
+        println(aliasMap)
     }
 
     override fun isBuildable(): Boolean = true
@@ -67,13 +74,19 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
 
     @Suppress("UNCHECKED_CAST")
     override fun <R : Any> metaProperty(propertyName: String): MetaProperty<R> {
-        val property = metaPropertyMap[propertyName] ?: throw NoSuchElementException("No property found named $propertyName")
-        return property as MetaProperty<R>
+        val property = metaPropertyMap[propertyName]
+        if (property != null) return property as MetaProperty<R>
+        val alias = aliasMap[propertyName]
+        if (alias != null) return metaProperty(alias)
+        throw NoSuchElementException("No property found named $propertyName")
     }
 
     override fun beanName(): String = beanClass.java.name
 
     override fun builder(): BeanBuilder<out Bean> = KotlinBeanBuilder(this)
+
+    private fun alias(property: KProperty1<*, *>): String? =
+        property.annotations.filterIsInstance<Alias>().firstOrNull()?.value
 
     companion object {
 
@@ -88,6 +101,10 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
         }
     }
 }
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.PROPERTY)
+annotation class Alias(val value: String)
 
 /**
  * [MetaProperty] implementation for Kotlin properties that uses reflection.

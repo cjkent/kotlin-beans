@@ -8,7 +8,6 @@ import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.joda.beans.Bean
-import org.joda.beans.gen.PropertyDefinition
 import org.joda.beans.ser.JodaBeanSer
 import org.testng.annotations.Test
 
@@ -100,8 +99,7 @@ class SerializationTest {
     fun renamedProperty() {
         data class Foo(
             val bar: Int,
-            // TODO this doesn't work, not sure why. where does Joda Beans look for aliases during deserialization?
-            @PropertyDefinition(alias = "qux")
+            @Alias("qux")
             val baz: String
         ) : ImmutableData
         @Language("json")
