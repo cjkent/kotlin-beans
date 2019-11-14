@@ -6,7 +6,9 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedSet
 import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
+import org.intellij.lang.annotations.Language
 import org.joda.beans.Bean
+import org.joda.beans.gen.PropertyDefinition
 import org.joda.beans.ser.JodaBeanSer
 import org.testng.annotations.Test
 
@@ -94,6 +96,36 @@ class SerializationTest {
         val bean = JodaBeanContainsFoo.builder().foo(Foo(42, "abc")).build()
         serializeDeserialize(bean)
     }
+
+    fun renamedProperty() {
+        data class Foo(
+            val bar: Int,
+            // TODO this doesn't work, not sure why. where does Joda Beans look for aliases during deserialization?
+            @PropertyDefinition(alias = "qux")
+            val baz: String
+        ) : ImmutableData
+        @Language("json")
+        val json = """
+        {
+         "bar": 123,
+         "qux": "abc"
+        }
+        """.trimIndent()
+        val foo = JodaBeanSer.PRETTY.jsonReader().read(json, Foo::class.java)
+        val expected = Foo(123, "abc")
+        assertThat(foo).isEqualTo(expected)
+    }
+
+    fun addedProperty() {
+        data class Foo(val bar: Int, val baz: String = "abc") : ImmutableData
+        @Language("json")
+        val json = """{"bar": 123}"""
+        val foo = JodaBeanSer.PRETTY.jsonReader().read(json, Foo::class.java)
+        val expected = Foo(123, "abc")
+        assertThat(foo).isEqualTo(expected)
+    }
+
+    // --------------------------------------------------------------------------------------------------
 
     private fun <T : Bean> serializeDeserialize(bean: T) {
         val json = JodaBeanSer.COMPACT.jsonWriter().write(bean)
