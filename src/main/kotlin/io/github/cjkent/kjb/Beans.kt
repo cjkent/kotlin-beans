@@ -4,13 +4,13 @@ import org.joda.beans.Bean
 import org.joda.beans.BeanBuilder
 import org.joda.beans.ImmutableBean
 import org.joda.beans.MetaBean
+import org.joda.beans.MetaBeanProvider
 import org.joda.beans.MetaProperty
+import org.joda.beans.MetaProvider
 import org.joda.beans.Property
 import org.joda.beans.PropertyStyle
 import org.joda.beans.impl.BasicProperty
-import org.joda.beans.ser.DeserializerProvider
 import org.joda.beans.ser.SerDeserializer
-import org.joda.beans.ser.SerDeserializerProvider
 import org.joda.convert.StringConvert
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -29,7 +29,7 @@ import kotlin.reflect.jvm.javaType
  * A Kotlin class can become a Joda bean by implementing this interface. No function implementations are
  * needed as they are all provided by this interface.
  */
-@DeserializerProvider(KotlinDeserializerProvider::class)
+@MetaProvider(KotlinMetaBeanProvider::class)
 interface ImmutableData : ImmutableBean {
 
     override fun <R : Any> property(propertyName: String): Property<R> =
@@ -57,7 +57,6 @@ data class KotlinMetaBean(val beanClass: KClass<out ImmutableBean>) : MetaBean {
             .filterValues { it != null }
             .map { (name, alias) -> alias to name }
             .toMap()
-        println(aliasMap)
     }
 
     override fun isBuildable(): Boolean = true
@@ -217,11 +216,10 @@ object KotlinSerDeserializer : SerDeserializer {
     override fun build(beanType: Class<*>, builder: BeanBuilder<*>): Any = builder.build()
 }
 
-/**
- * [SerDeserializerProvider] that adds support for Kotlin to the Joda Beans serialization mechanism.
- */
-class KotlinDeserializerProvider : SerDeserializerProvider {
-
-    override fun findDeserializer(type: Class<*>): SerDeserializer? =
-        if (ImmutableData::class.java.isAssignableFrom(type)) KotlinSerDeserializer else null
+class KotlinMetaBeanProvider : MetaBeanProvider {
+    override fun findMetaBean(cls: Class<*>): MetaBean? {
+        if (!ImmutableBean::class.java.isAssignableFrom(cls)) return null
+        @Suppress("UNCHECKED_CAST")
+        return KotlinMetaBean.forType(cls.kotlin as KClass<out ImmutableBean>)
+    }
 }
