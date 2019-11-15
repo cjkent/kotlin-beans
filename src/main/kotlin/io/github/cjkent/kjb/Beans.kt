@@ -186,7 +186,6 @@ data class KotlinBeanBuilder<T : ImmutableBean>(val metaBean: KotlinMetaBean) : 
         val primaryConstructor = metaBean.beanClass.constructors.toList()[0]
         // Filter out the constructor parameters if there is no corresponding argument.
         // Construction will fail if any of these parameters are non-optional (don't have default values)
-        // TODO check the exception thrown is understandable
         val constructorArgs = primaryConstructor.parameters
             .filter { propertyValues.contains(it.name) }
             .associateWith { propertyValues[it.name] }
