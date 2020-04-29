@@ -1,10 +1,9 @@
-package io.github.cjkent.kjb
+package io.github.cjkent.kotlinbeans
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedSet
-import io.github.cjkent.JodaBeanContainsFoo
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.joda.beans.Bean

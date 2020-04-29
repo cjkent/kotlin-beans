@@ -1,4 +1,4 @@
-package io.github.cjkent.kjb
+package io.github.cjkent.kotlinbeans
 
 import org.joda.beans.Bean
 import org.joda.beans.BeanBuilder

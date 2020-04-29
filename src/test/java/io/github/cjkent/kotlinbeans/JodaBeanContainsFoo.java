@@ -1,4 +1,4 @@
-package io.github.cjkent;
+package io.github.cjkent.kotlinbeans;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -14,8 +14,6 @@ import org.joda.beans.impl.direct.DirectFieldsBeanBuilder;
 import org.joda.beans.impl.direct.DirectMetaBean;
 import org.joda.beans.impl.direct.DirectMetaProperty;
 import org.joda.beans.impl.direct.DirectMetaPropertyMap;
-
-import io.github.cjkent.kjb.Foo;
 
 @BeanDefinition
 public final class JodaBeanContainsFoo implements ImmutableBean {
