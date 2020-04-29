@@ -9,6 +9,29 @@
     <packaging>jar</packaging>
 
     <name>Kotlin Beans</name>
+    <description>A library that allows Kotlin data classes to be serialized by Joda Beans serialization</description>
+    <url>https://github.com/cjkent/kotlin-beans</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Chris Kent</name>
+            <email>cjkent@hotmail.com</email>
+            <url>https://github.com/cjkent</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/cjkent/kotlin-beans.git</connection>
+        <developerConnection>scm:git:ssh://github.com:cjkent/kotlin-beans.git</developerConnection>
+        <url>https://github.com/cjkent/kotlin-beans/tree/master</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,6 +93,7 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
