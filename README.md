@@ -6,3 +6,27 @@ Using this library allows immutable Kotlin data classes to be serialized and des
 Note this is not intended to be a full replacement for Joda Beans code generation for classes that will be consumed from Java code. The Kotlin classes will implement the Joda `Bean` interface, but will not have builders or factory methods that generated Joda Beans do in Java.
 
 The intended use case for this library is for Kotlin immutable data classes that will be consumed in Kotlin code, but must be serialized and deserialized using Joda Beans serialization. The features that Joda Beans adds to Java classes are provided by Kotlin as part of the language.
+
+## Adding as a Dependency
+
+### Maven
+
+```xml
+<dependency>
+  <groupId>io.github.cjkent.kotlinbeans</groupId>
+  <artifactId>kotlin-beans</artifactId>
+  <version>0.1</version>
+</dependency>
+```
+
+### Gradle Groovy DSL
+
+```groovy
+implementation 'io.github.cjkent.kotlinbeans:kotlin-beans:0.1'
+```
+
+### Gradle Kotlin DSL
+
+```kotlin
+implementation("io.github.cjkent.kotlinbeans:kotlin-beans:0.1")
+```
