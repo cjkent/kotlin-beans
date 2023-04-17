@@ -43,7 +43,7 @@
         <maven.compiler.verbose>true</maven.compiler.verbose>
         <guava.version>23.0</guava.version>
         <assertj.version>3.8.0</assertj.version>
-        <testng.version>6.11</testng.version>
+        <testng.version>7.7.0</testng.version>
         <joda-beans.version>2.8.0</joda-beans.version>
         <joda-convert.version>2.2.1</joda-convert.version>
         <dokka.version>0.9.18</dokka.version>
